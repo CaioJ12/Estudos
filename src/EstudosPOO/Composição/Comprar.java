@@ -16,7 +16,7 @@ public class Comprar {
         cliente.compras.add(compra1);
         cliente.compras.add(compra2);
 
-        System.out.println("o valor total da compra foi: R$" + cliente.obterValorTotal());
+        System.out.println("o valor total da compra foi: R$" + +cliente.obterValorTotal());
 
     }
 }
