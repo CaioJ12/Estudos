@@ -1,4 +1,4 @@
-package GestãoBiblioteca;
+package EstudosPOO.GestaoBiblioteca;
 
 public class CadastroLivro {
 
