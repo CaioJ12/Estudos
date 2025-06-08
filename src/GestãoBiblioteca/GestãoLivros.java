@@ -14,4 +14,7 @@ public class GestãoLivros {
     }
 
     // Outras funções como removerLivro, buscarLivro, etc.
+
+    public void removerLivro(String titulo, String autor, String editora){}
+    public void removerLivro(String isbn){}
 }
