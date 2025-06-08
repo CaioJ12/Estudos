@@ -1,4 +1,4 @@
-package GestãoBiblioteca;
+package GestaoBiblioteca;
 
 public class CadastroLivro {
 

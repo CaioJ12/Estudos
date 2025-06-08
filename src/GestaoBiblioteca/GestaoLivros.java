@@ -1,9 +1,9 @@
-package GestãoBiblioteca;
+package GestaoBiblioteca;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class GestãoLivros {
+public class GestaoLivros {
     List<CadastroLivro> livros = new ArrayList<>();
 
     public void adicionarLivro(String titulo, String autor, String editora, String isbn, int quantidade) {
