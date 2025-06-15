@@ -56,7 +56,7 @@ public class GestaoLivros {
 
     // função para aumentar estoque
 
-    public void aumentarEstoque(String titulo, String isbn, String editora, String autor, int quantidade) {
+    public void aumentarEstoque(String titulo, String editora, String autor, int quantidade) {
         for (CadastroLivro livro : livros) {
             boolean tituloConfere = livro.titulo.equalsIgnoreCase(titulo);
             boolean editoraConfere = livro.editora.equalsIgnoreCase(editora);
@@ -86,7 +86,7 @@ public class GestaoLivros {
     }
 
     // função de buscar livr
-    // criar função
+    // criar função TENTATIVA COMMIT TESTE 01
 
     //função de printar a lista de livros existentes
     public void verLivros(){
