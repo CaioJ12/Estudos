@@ -85,7 +85,7 @@ public class GestaoLivros {
         System.out.println("Livro não encontrado.");
     }
 
-    // função de buscar livro
+    // função de buscar livr
     // criar função
 
     //função de printar a lista de livros existentes
