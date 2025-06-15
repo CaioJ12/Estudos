@@ -86,6 +86,7 @@ public class GestaoLivros {
     }
 
     // função de buscar livro
+    // criar função
 
     //função de printar a lista de livros existentes
     public void verLivros(){
