@@ -1,11 +1,15 @@
-# Mascote do Wez
+# Mascotes do canal
 
-- `index.html`: ficha do personagem no estilo designer toy (boneco de vinil 3D), com vistas, humores e o Wez andando conforme a página rola.
+Bonecos no estilo designer toy (vinil 3D fofo), da mesma coleção.
+
+## Wez
+- `index.html`: ficha do Wez, com vistas, humores e o Wez andando conforme a página rola.
 - `flat.html` e `wez.svg`: versão 2D em vetor (rubber hose), com duas expressões.
-- `renders/`: imagens geradas com o gerador de imagens do Figma.
-  - `wez-toy-hero.png`, `wez-toy-andando.png`: renders individuais.
-  - `wez-toy-vistas.png`: frente, perfil, costas e três-quartos.
-  - `wez-toy-poses.png`: soneca, surpresa, gargalhada e timidez.
-  - `wez-hero-recorte.png`, `wez-andando-recorte.png`: versões com fundo transparente (geradas em chroma key verde e recortadas).
+- `renders/wez-*`: hero, andando, vistas, humores e recortes com fundo transparente.
 
-Para ver, abra `index.html` no navegador e role a página.
+## Cacau
+- `cacau.html`: ficha do Cacau no mesmo formato.
+- `renders/cacau-*`: hero (joinha), andando, vistas, humores e recortes com fundo transparente.
+
+As imagens foram geradas com o gerador de imagens do Figma. Os recortes vêm de versões em fundo verde (chroma key).
+Para ver, abra `index.html` ou `cacau.html` no navegador e role a página.
