@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mascote do Chefe</title>
+<style>
+  :root {
+    --bg: #2ec4b6;
+    --bg-dark: #1f9e93;
+    --ink: #1d1a19;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Trebuchet MS", system-ui, sans-serif;
+    color: var(--ink);
+    background: repeating-conic-gradient(from 0deg at 50% 30%, var(--bg) 0 10deg, var(--bg-dark) 10deg 20deg);
+  }
+  h1, h2 { margin: 0; letter-spacing: .5px; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 32px 16px;
+    text-align: center;
+  }
+  .hero .mascote { width: min(320px, 80vw); }
+  .hero h1 {
+    margin-top: 12px;
+    background: var(--card);
+    display: inline-block;
+    padding: 8px 22px;
+    border-radius: 999px;
+    border: 4px solid var(--ink);
+    box-shadow: 0 6px 0 var(--ink);
+  }
+  .hero p { color: #fff; font-weight: bold; text-shadow: 0 2px 0 rgba(0,0,0,.35); }
+
+  /* animação parada: respira + pisca */
+  .idle .corpo-todo { animation: respira 2.4s ease-in-out infinite; transform-origin: 150px 420px; }
+  .palpebra { transform-box: fill-box; transform-origin: top; }
+  .idle .palpebra { animation: pisca 4s infinite; }
+  .idle .sobrancelha-d { animation: ergue 6s ease-in-out infinite; }
+  @keyframes respira { 0%,100% { transform: scale(1, 1); } 50% { transform: scale(1.02, .98); } }
+  @keyframes pisca { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(2.6); } }
+  @keyframes ergue { 0%, 70%, 100% { transform: translateY(0); } 78%, 90% { transform: translateY(-7px); } }
+
+  /* ---------- Trilha de scroll ---------- */
+  .trilha { height: 400vh; position: relative; }
+  .palco {
+    position: sticky; top: 0;
+    height: 100vh;
+    overflow: hidden;
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  .palco h2 {
+    position: absolute; top: 24px; left: 16px; right: 16px;
+    text-align: center; color: #fff;
+    text-shadow: 0 3px 0 rgba(0,0,0,.35);
+  }
+  .chao {
+    height: 22vh;
+    background: #f4d58d;
+    border-top: 6px solid var(--ink);
+  }
+  .andador {
+    position: absolute;
+    bottom: calc(22vh - 6px);
+    left: 0;
+    width: min(180px, 40vw);
+    will-change: transform;
+  }
+  .andador .mascote { display: block; width: 100%; }
+  .andador.virado .mascote { transform: scaleX(-1); }
+  .perna { transform-box: view-box; }
+
+  .fim { min-height: 60vh; display: grid; place-items: center; color: #fff; font-size: 1.4rem; text-align: center; padding: 16px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .idle .corpo-todo, .idle .palpebra, .idle .sobrancelha-d { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- O desenho do mascote fica num template e é clonado para cada lugar onde aparece -->
+<template id="mascote-svg">
+<svg class="mascote" viewBox="0 0 300 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mascote cartoon de boné bege, barba cheia e camiseta marrom, de braços cruzados">
+  <g class="corpo-todo">
+    <!-- sombra no chão -->
+    <ellipse cx="150" cy="420" rx="70" ry="8" fill="rgba(0,0,0,.18)"/>
+
+    <!-- PERNAS (giram a partir do quadril) -->
+    <g class="perna perna-e" style="transform-origin:128px 368px">
+      <rect x="121" y="362" width="15" height="44" rx="7" fill="#e3a982" stroke="#1d1a19" stroke-width="4"/>
+      <path d="M108 404 h32 a8 8 0 0 1 8 8 v2 h-48 v-2 a8 8 0 0 1 8 -8z" fill="#f2efe9" stroke="#1d1a19" stroke-width="4"/>
+    </g>
+    <g class="perna perna-d" style="transform-origin:172px 368px">
+      <rect x="164" y="362" width="15" height="44" rx="7" fill="#e3a982" stroke="#1d1a19" stroke-width="4"/>
+      <path d="M160 404 h32 a8 8 0 0 1 8 8 v2 h-48 v-2 a8 8 0 0 1 8 -8z" fill="#f2efe9" stroke="#1d1a19" stroke-width="4"/>
+    </g>
+
+    <!-- BERMUDA azul estampada -->
+    <rect x="100" y="336" width="100" height="36" rx="8" fill="#2f5da8" stroke="#1d1a19" stroke-width="4"/>
+    <path d="M150 346 v24" stroke="#1d1a19" stroke-width="3"/>
+    <g fill="#8fb3ea">
+      <circle cx="115" cy="350" r="3"/><circle cx="133" cy="360" r="2.5"/><circle cx="120" cy="364" r="2"/>
+      <circle cx="168" cy="352" r="3"/><circle cx="186" cy="362" r="2.5"/><circle cx="180" cy="348" r="2"/>
+    </g>
+
+    <!-- TRONCO: camiseta marrom quadradona -->
+    <path d="M92 262 Q92 250 106 248 L194 248 Q208 250 208 262 L210 344 L90 344 Z" fill="#7a4e2d" stroke="#1d1a19" stroke-width="4" stroke-linejoin="round"/>
+    <!-- mangas -->
+    <path d="M94 258 L70 266 Q64 268 64 276 L66 300 L94 300 Z" fill="#7a4e2d" stroke="#1d1a19" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M206 258 L230 266 Q236 268 236 276 L234 300 L206 300 Z" fill="#7a4e2d" stroke="#1d1a19" stroke-width="4" stroke-linejoin="round"/>
+    <!-- gola careca -->
+    <path d="M124 249 Q150 266 176 249" fill="none" stroke="#5e3b21" stroke-width="5" stroke-linecap="round"/>
+
+    <!-- BRAÇOS CRUZADOS -->
+    <!-- braço de trás (esquerdo do mascote) -->
+    <path d="M70 298 Q66 318 86 322 L200 318 Q212 316 212 306 Q212 296 200 296 L96 300 Z" fill="#e3a982" stroke="#1d1a19" stroke-width="4" stroke-linejoin="round"/>
+    <!-- braço da frente (direito, com relógio) -->
+    <path d="M230 298 Q236 322 214 326 L100 330 Q86 330 86 318 Q86 308 100 308 L204 304 Z" fill="#edb894" stroke="#1d1a19" stroke-width="4" stroke-linejoin="round"/>
+    <!-- pelinhos do braço (caricato) -->
+    <g stroke="#9a6a4c" stroke-width="2" stroke-linecap="round">
+      <path d="M130 314 l4 -4"/><path d="M146 313 l4 -4"/><path d="M162 312 l4 -4"/><path d="M178 311 l4 -4"/>
+    </g>
+    <!-- mão da frente -->
+    <ellipse cx="96" cy="319" rx="13" ry="11" fill="#edb894" stroke="#1d1a19" stroke-width="4"/>
+    <!-- RELÓGIO: pulseira marrom + mostrador prateado -->
+    <rect x="112" y="305" width="14" height="27" rx="3" fill="#a0522d" stroke="#1d1a19" stroke-width="3"/>
+    <circle cx="119" cy="318" r="12" fill="#d9dde3" stroke="#1d1a19" stroke-width="3"/>
+    <circle cx="119" cy="318" r="8" fill="#ffffff"/>
+    <path d="M119 318 v-6 M119 318 h4" stroke="#1d1a19" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- PESCOÇO -->
+    <rect x="128" y="236" width="44" height="18" fill="#d99a72" stroke="#1d1a19" stroke-width="4"/>
+
+    <!-- CABEÇA quadrada -->
+    <!-- orelhas -->
+    <ellipse cx="66" cy="160" rx="12" ry="17" fill="#e3a982" stroke="#1d1a19" stroke-width="4"/>
+    <ellipse cx="234" cy="160" rx="12" ry="17" fill="#e3a982" stroke="#1d1a19" stroke-width="4"/>
+    <rect x="68" y="78" width="164" height="166" rx="38" fill="#edb894" stroke="#1d1a19" stroke-width="4"/>
+
+    <!-- BARBA aparada "em bloco": costeleta fina, bochecha livre, queixo cheio -->
+    <path d="M70 130 L82 130 L84 178 Q92 196 112 198 L188 198 Q208 196 216 178 L218 130 L230 130 L230 198 Q228 256 150 258 Q72 256 70 198 Z"
+          fill="#2b2220" stroke="#1d1a19" stroke-width="4" stroke-linejoin="round"/>
+    <!-- textura da barba -->
+    <g fill="#3d312d">
+      <circle cx="96" cy="214" r="2.5"/><circle cx="118" cy="236" r="2.5"/><circle cx="150" cy="246" r="2.5"/>
+      <circle cx="182" cy="236" r="2.5"/><circle cx="204" cy="214" r="2.5"/><circle cx="78" cy="170" r="2"/><circle cx="222" cy="170" r="2"/>
+    </g>
+    <!-- bigode -->
+    <path d="M108 198 Q128 182 150 190 Q172 182 192 198 Q170 203 150 200 Q130 203 108 198 Z" fill="#2b2220" stroke="#1d1a19" stroke-width="3" stroke-linejoin="round"/>
+    <!-- boca: meio sorriso de canto, bem "sério" -->
+    <path d="M134 216 Q152 220 168 211" fill="none" stroke="#c9736a" stroke-width="5" stroke-linecap="round"/>
+
+    <!-- NARIZ -->
+    <path d="M150 156 Q146 174 139 179 Q150 186 161 179" fill="none" stroke="#c98a63" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- OLHOS estilo cartoon (ovais pretos com brilho) -->
+    <ellipse cx="118" cy="160" rx="10" ry="13" fill="#1d1a19"/>
+    <ellipse cx="182" cy="160" rx="10" ry="13" fill="#1d1a19"/>
+    <circle cx="121" cy="157" r="3.5" fill="#fff"/>
+    <circle cx="185" cy="157" r="3.5" fill="#fff"/>
+    <!-- pálpebras pesadas = olhar de chefe -->
+    <rect class="palpebra" x="104" y="145" width="28" height="11" fill="#edb894"/>
+    <rect class="palpebra" x="168" y="145" width="28" height="11" fill="#edb894"/>
+
+    <!-- SOBRANCELHAS grossas, levemente franzidas -->
+    <rect x="96" y="131" width="42" height="12" rx="6" fill="#2b2220" transform="rotate(9 117 137)"/>
+    <g class="sobrancelha-d">
+      <rect x="162" y="131" width="42" height="12" rx="6" fill="#2b2220" transform="rotate(-9 183 137)"/>
+    </g>
+
+    <!-- BONÉ de aba curva, bege -->
+    <path d="M64 120 Q60 48 150 42 Q240 48 236 120 Z" fill="#d2bc94" stroke="#1d1a19" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M150 44 L150 118" stroke="#b39e77" stroke-width="3"/>
+    <path d="M150 44 Q106 62 98 118" fill="none" stroke="#b39e77" stroke-width="3"/>
+    <path d="M150 44 Q194 62 202 118" fill="none" stroke="#b39e77" stroke-width="3"/>
+    <circle cx="150" cy="44" r="6" fill="#d2bc94" stroke="#1d1a19" stroke-width="3"/>
+    <!-- aba vista de frente: curva, mais estreita que a copa -->
+    <path d="M80 116 Q150 100 220 116 Q228 130 210 134 Q150 122 90 134 Q72 130 80 116 Z" fill="#c4ad84" stroke="#1d1a19" stroke-width="4" stroke-linejoin="round"/>
+  </g>
+</svg>
+</template>
+
+<section class="hero">
+  <div>
+    <div id="hero-slot"></div>
+    <h1>O Chefe</h1>
+    <p>Role a página para baixo ↓</p>
+  </div>
+</section>
+
+<section class="trilha" id="trilha">
+  <div class="palco">
+    <h2>Bora, que o canal não para!</h2>
+    <div class="andador" id="andador"></div>
+    <div class="chao"></div>
+  </div>
+</section>
+
+<section class="fim">Chegou! 👊</section>
+
+<script>
+  const tpl = document.getElementById('mascote-svg');
+  const clone = () => tpl.content.firstElementChild.cloneNode(true);
+
+  // Hero: versão parada (respira, pisca, ergue a sobrancelha)
+  const hero = clone();
+  hero.classList.add('idle');
+  document.getElementById('hero-slot').appendChild(hero);
+
+  // Andador: versão que caminha com o scroll
+  const andador = document.getElementById('andador');
+  const walker = clone();
+  andador.appendChild(walker);
+  const pernaE = walker.querySelector('.perna-e');
+  const pernaD = walker.querySelector('.perna-d');
+  const corpo = walker.querySelector('.corpo-todo');
+  const trilha = document.getElementById('trilha');
+
+  let ultimoY = window.scrollY;
+  function atualizar() {
+    const inicio = trilha.offsetTop;
+    const total = trilha.offsetHeight - window.innerHeight;
+    const p = Math.min(1, Math.max(0, (window.scrollY - inicio) / total));
+
+    // posição horizontal acompanha o progresso do scroll
+    const maxX = window.innerWidth - andador.offsetWidth;
+    andador.style.transform = `translateX(${p * maxX}px)`;
+
+    // passos: as pernas balançam conforme a distância rolada
+    const passo = Math.sin(window.scrollY / 22);
+    pernaE.style.transform = `rotate(${passo * 28}deg)`;
+    pernaD.style.transform = `rotate(${-passo * 28}deg)`;
+    corpo.style.transform = `translateY(${-Math.abs(passo) * 6}px)`;
+
+    // rolou para cima? ele vira e anda de volta
+    if (window.scrollY < ultimoY) andador.classList.add('virado');
+    else if (window.scrollY > ultimoY) andador.classList.remove('virado');
+    ultimoY = window.scrollY;
+  }
+  window.addEventListener('scroll', () => requestAnimationFrame(atualizar), { passive: true });
+  window.addEventListener('resize', atualizar);
+  atualizar();
+</script>
+</body>
+</html>
