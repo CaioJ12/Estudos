@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coleção em 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Grandstander:wght@800&display=swap" rel="stylesheet">
+<style>
+  :root { --fundo: #f3e7da; --tinta: #2a1e19; --chip: #fffaf4; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--fundo); color: var(--tinta); font-family: "Atkinson Hyperlegible", system-ui, sans-serif; overflow: hidden; }
+  canvas { display: block; touch-action: none; }
+  header { position: fixed; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: start; gap: 12px; pointer-events: none; }
+  h1 { font-family: "Grandstander", system-ui, sans-serif; font-weight: 800; font-size: clamp(1.6rem, 4vw, 2.6rem); margin: 0; line-height: 1; }
+  header p { margin: 6px 0 0; font-size: .95rem; opacity: .75; max-width: 30em; }
+  .controles { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; width: calc(100% - 32px); }
+  .controles button {
+    font: inherit; font-weight: 700; padding: 10px 16px; border-radius: 999px;
+    border: 3px solid var(--tinta); background: var(--chip); color: var(--tinta);
+    box-shadow: 0 4px 0 var(--tinta); cursor: pointer;
+  }
+  .controles button[aria-pressed="true"] { background: #f6b26b; }
+  .controles button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--tinta); }
+  :focus-visible { outline: 3px solid #e0735a; outline-offset: 3px; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>A coleção em 3D</h1>
+    <p>Arraste para girar, use a roda ou a pinça para dar zoom. Toque num boneco para ele pular.</p>
+  </div>
+</header>
+<div class="controles" role="group" aria-label="Animação">
+  <button type="button" data-acao="parado" aria-pressed="true">Parados</button>
+  <button type="button" data-acao="acenar" aria-pressed="false">Acenar</button>
+  <button type="button" data-acao="andar" aria-pressed="false">Andar</button>
+  <button type="button" data-acao="dancar" aria-pressed="false">Dançar</button>
+</div>
+
+<script type="module">
+import * as THREE from './vendor/three.module.min.js';
+import { OrbitControls } from './vendor/OrbitControls.js';
+
+// ---------- cena ----------
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#f3e7da');
+scene.fog = new THREE.Fog('#f3e7da', 16, 32);
+const camera = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, 0.1, 100);
+camera.position.set(0, 2.4, 11.5);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 1.35, 0);
+controls.enableDamping = true;
+controls.minDistance = 4; controls.maxDistance = 20;
+controls.maxPolarAngle = Math.PI * 0.52;
+
+scene.add(new THREE.HemisphereLight('#fff6ec', '#c9a98a', 1.6));
+const sol = new THREE.DirectionalLight('#ffffff', 2.2);
+sol.position.set(4, 8, 6); sol.castShadow = true;
+sol.shadow.mapSize.set(2048, 2048);
+Object.assign(sol.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8 });
+sol.shadow.radius = 6;
+scene.add(sol);
+const contra = new THREE.DirectionalLight('#ffe2c4', 0.8); contra.position.set(-5, 4, -4); scene.add(contra);
+
+const chao = new THREE.Mesh(new THREE.CircleGeometry(40, 64), new THREE.MeshStandardMaterial({ color: '#efdfcd', roughness: 1 }));
+chao.rotation.x = -Math.PI / 2; chao.receiveShadow = true; scene.add(chao);
+
+// ---------- ajudantes ----------
+const mats = {};
+const mat = (c, extra = {}) => {
+  const k = c + JSON.stringify(extra);
+  return mats[k] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.75, metalness: 0, ...extra });
+};
+function mesh(geo, cor, pai, pos = [0, 0, 0], esc = [1, 1, 1], rot = [0, 0, 0], extra) {
+  const m = new THREE.Mesh(geo, typeof cor === 'string' ? mat(cor, extra) : cor);
+  m.position.set(...pos); m.scale.set(...esc); m.rotation.set(...rot);
+  m.castShadow = true; m.receiveShadow = true;
+  pai.add(m); return m;
+}
+const esfera = new THREE.SphereGeometry(1, 40, 28);
+const capsula = (r, h) => new THREE.CapsuleGeometry(r, h, 8, 20);
+const toro = (r, t) => new THREE.TorusGeometry(r, t, 12, 48);
+function caixaRedonda(w, h, d, r = 0.08) {
+  const s = new THREE.Shape(), x = -w / 2, y = -h / 2;
+  s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r);
+  s.lineTo(x + w, y + h - r); s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  s.lineTo(x + r, y + h); s.quadraticCurveTo(x, y + h, x, y + h - r);
+  s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y);
+  const g = new THREE.ExtrudeGeometry(s, { depth: d - 2 * r, bevelEnabled: true, bevelSize: r, bevelThickness: r, bevelSegments: 6, curveSegments: 10 });
+  g.translate(0, 0, -(d - 2 * r) / 2); return g;
+}
+// faixa da parte de baixo de uma esfera (para barbas)
+function casca(r, phiIni, phiLen, thetaIni, thetaLen) {
+  return new THREE.SphereGeometry(r, 40, 24, phiIni, phiLen, thetaIni, thetaLen);
+}
+
+// ---------- boneco base ----------
+// cada boneco tem: raiz > corpo (balanço) > cabeca, bracoE/D, pernaE/D
+function boneco(cfg) {
+  const raiz = new THREE.Group();
+  const corpo = new THREE.Group(); raiz.add(corpo);
+  const P = cfg.pele;
+
+  // pernas
+  const pernas = [-0.17, 0.17].map(x => {
+    const g = new THREE.Group(); g.position.set(x, 0.62, 0); corpo.add(g);
+    mesh(capsula(0.12, 0.3), cfg.perna || P, g, [0, -0.25, 0]);
+    if (cfg.cano) mesh(capsula(0.135, 0.12), cfg.cano, g, [0, -0.08, 0]);
+    const sapato = mesh(caixaRedonda(0.3, 0.2, 0.46, 0.09), cfg.tenis || '#f3f0ec', g, [0, -0.52, 0.06]);
+    mesh(caixaRedonda(0.32, 0.06, 0.48, 0.03), '#d9d4cf', sapato, [0, -0.08, 0]);
+    return g;
+  });
+
+  // quadril (bermuda / calça / saia)
+  mesh(capsula(0.33, 0.12), cfg.baixo, corpo, [0, 0.7, 0], [1, 1, 0.85]);
+
+  // tronco
+  const tronco = mesh(capsula(0.38, 0.32), cfg.camisa, corpo, [0, 1.05, 0], [1, 1, 0.82]);
+  cfg.extraTronco?.(corpo);
+
+  // braços (pivô no ombro)
+  const bracos = [-1, 1].map(lado => {
+    const g = new THREE.Group(); g.position.set(0.42 * lado, 1.28, 0); corpo.add(g);
+    mesh(capsula(0.14, 0.12), cfg.manga || cfg.camisa, g, [0.02 * lado, -0.08, 0]);
+    mesh(capsula(0.095, 0.26), P, g, [0.03 * lado, -0.3, 0]);
+    const mao = mesh(esfera, P, g, [0.03 * lado, -0.52, 0], [0.12, 0.12, 0.12]);
+    g.rotation.z = 0.18 * lado;
+    return { g, mao, lado };
+  });
+  cfg.extraBraco?.(bracos);
+
+  // pescoço + cabeça
+  mesh(capsula(0.12, 0.08), P, corpo, [0, 1.42, 0]);
+  const cabeca = new THREE.Group(); cabeca.position.set(0, 2.08, 0); corpo.add(cabeca);
+  const [hx, hy, hz] = cfg.cabecaEsc || [0.72, 0.68, 0.66];
+  mesh(esfera, P, cabeca, [0, 0, 0], [hx, hy, hz]);
+  // orelhas
+  [-1, 1].forEach(l => mesh(esfera, P, cabeca, [hx * 0.98 * l, -0.06, -0.02], [0.13, 0.17, 0.09]));
+  // olhos
+  const olhos = [-1, 1].map(l => {
+    const o = new THREE.Group(); o.position.set(0.25 * l, -0.02, hz * 0.9); cabeca.add(o);
+    mesh(esfera, '#2a1a12', o, [0, 0, 0], [0.13, 0.16, 0.07], [0, 0, 0], { roughness: 0.25 });
+    mesh(esfera, '#ffffff', o, [0.045, 0.06, 0.05], [0.04, 0.04, 0.02], [0, 0, 0], { roughness: 0.2, emissive: '#ffffff', emissiveIntensity: 0.4 });
+    mesh(esfera, '#ffffff', o, [-0.04, -0.06, 0.05], [0.018, 0.018, 0.01], [0, 0, 0], { emissive: '#ffffff', emissiveIntensity: 0.4 });
+    return o;
+  });
+  // sobrancelhas
+  [-1, 1].forEach(l => mesh(caixaRedonda(0.24, 0.06, 0.05, 0.02), cfg.sobrancelha || '#2a1e19', cabeca,
+    [0.25 * l, 0.2, hz * 0.95], [1, cfg.sobrancelhaGrossa || 1, 1], [0, 0, -0.08 * l]));
+  // nariz e bochechas
+  mesh(esfera, cfg.nariz || '#eba982', cabeca, [0, -0.15, hz * 0.98], [0.06, 0.05, 0.05]);
+  [-1, 1].forEach(l => mesh(esfera, cfg.blush || '#f29a8a', cabeca, [0.42 * l, -0.18, hz * 0.8], [0.11, 0.06, 0.03], [0, 0.5 * l, 0], { transparent: true, opacity: 0.7 }));
+  // boca
+  const boca = new THREE.Group(); boca.position.set(0, -0.31, hz * 1.03); cabeca.add(boca);
+  if (cfg.dentinhos) {
+    mesh(esfera, '#6b2a25', boca, [0, 0, 0], [0.09, 0.055, 0.03]);
+    [-1, 1].forEach(l => mesh(caixaRedonda(0.045, 0.05, 0.02, 0.008), '#ffffff', boca, [0.025 * l, 0.022, 0.02]));
+  } else {
+    const sorriso = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.016, 8, 24, Math.PI), mat('#8b3b33'));
+    sorriso.rotation.z = Math.PI; boca.add(sorriso);
+  }
+  cfg.extraCabeca?.(cabeca, { hx, hy, hz });
+
+  raiz.traverse(o => { if (o.isMesh) o.userData.dono = raiz; });
+  Object.assign(raiz.userData, { corpo, cabeca, bracos, pernas, olhos, cfg, pulo: 0, fase: Math.random() * 6 });
+  return raiz;
+}
+
+// ---------- os quatro ----------
+const WEZ = boneco({
+  pele: '#f0b98f', camisa: '#80523a', baixo: '#24305a', cabecaEsc: [0.74, 0.7, 0.66],
+  sobrancelhaGrossa: 1.3,
+  extraTronco(c) { // estampa de coqueirinhos na bermuda
+    for (let i = 0; i < 10; i++) mesh(esfera, '#e8eef9', c, [(-0.28 + (i % 5) * 0.14), 0.62 + Math.floor(i / 5) * 0.12, 0.29], [0.022, 0.022, 0.01]);
+  },
+  extraBraco(b) { // relógio no pulso esquerdo
+    const pulso = b[0].g;
+    mesh(toro(0.1, 0.03), '#8a4b2a', pulso, [-0.03, -0.43, 0], [1, 1, 1], [Math.PI / 2, 0, 0]);
+    mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.03, 24), '#cfd3d8', pulso, [-0.03, -0.43, 0.1], [1, 1, 1], [Math.PI / 2, 0, 0], { metalness: 0.6, roughness: 0.3 });
+  },
+  extraCabeca(h, { hx, hy, hz }) {
+    // barba fechada cinza-escuro: casca na metade de baixo + bigode
+    mesh(casca(1.012, Math.PI * 0.06, Math.PI * 0.88, Math.PI * 0.6, Math.PI * 0.36), '#3a3533', h, [0, 0, 0], [hx, hy, hz]);
+    mesh(capsula(0.035, 0.14), '#3a3533', h, [0, -0.235, hz * 1.02], [1, 1, 1], [0, 0, Math.PI / 2]);
+    // cabelo preto nas têmporas
+    [-1, 1].forEach(l => mesh(esfera, '#1f1a17', h, [hx * 0.9 * l, 0.12, 0.05], [0.1, 0.18, 0.25]));
+    // boné bege
+    mesh(casca(1.05, 0, Math.PI * 2, 0, Math.PI * 0.5), '#d6b68c', h, [0, 0.12, 0], [hx, hy * 0.95, hz]);
+    mesh(toro(1.0, 0.03), '#c2a074', h, [0, 0.12, 0], [hx * 1.05, hz * 1.05, 1], [Math.PI / 2, 0, 0]);
+    mesh(esfera, '#d6b68c', h, [0, 0.12 + hy * 1.0, 0], [0.06, 0.04, 0.06]);
+    const aba = mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.05, 40, 1, false, -Math.PI * 0.5, Math.PI), '#c2a074', h, [0, 0.14, hz * 0.7], [1.3, 1, 1.25], [0.15, 0, 0]);
+  },
+});
+
+const CACAU = boneco({
+  pele: '#f1b383', camisa: '#2340c8', baixo: '#18181a', dentinhos: true, sobrancelhaGrossa: 1.2,
+  extraTronco(c) { // fone no pescoço
+    mesh(toro(0.26, 0.045), '#1c1c1e', c, [0, 1.42, 0.02], [1, 1, 1], [Math.PI / 2.3, 0, 0]);
+    [-1, 1].forEach(l => mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.08, 24), '#1c1c1e', c, [0.24 * l, 1.38, 0.16], [1, 1, 1], [Math.PI / 2, 0, Math.PI / 2 * l * 0.3]));
+  },
+  extraCabeca(h, { hx, hy, hz }) {
+    // barba curta + bigode
+    mesh(casca(1.008, Math.PI * 0.1, Math.PI * 0.8, Math.PI * 0.64, Math.PI * 0.32), '#2b2523', h, [0, 0, 0], [hx, hy, hz], [0, 0, 0], { transparent: true, opacity: 0.9 });
+    mesh(capsula(0.03, 0.12), '#2b2523', h, [0, -0.235, hz * 1.02], [1, 1, 1], [0, 0, Math.PI / 2]);
+    // cachos: muitas molinhas em cima
+    const cachos = new THREE.Group(); h.add(cachos);
+    const rnd = (() => { let s = 7; return () => (s = (s * 9301 + 49297) % 233280) / 233280; })();
+    for (let i = 0; i < 70; i++) {
+      const th = rnd() * Math.PI * 2, ph = rnd() * Math.PI * 0.42;
+      const p = new THREE.Vector3(Math.sin(ph) * Math.cos(th) * hx, Math.cos(ph) * hy + 0.05, Math.sin(ph) * Math.sin(th) * hz);
+      if (p.z > hz * 0.45 && p.y < hy * 0.55) continue;
+      mesh(toro(0.085, 0.045), '#141110', cachos, [p.x * 1.08, p.y * 1.08, p.z * 1.08], [1, 1, 1], [rnd() * 3, rnd() * 3, 0], { roughness: 0.45 });
+    }
+    // molinhas caindo na testa
+    [-0.18, 0.02, 0.2].forEach((x, i) => {
+      const mola = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(
+        Array.from({ length: 14 }, (_, k) => new THREE.Vector3(Math.cos(k * 1.4) * 0.04, -k * 0.016, Math.sin(k * 1.4) * 0.04))), 60, 0.018, 8), mat('#141110', { roughness: 0.45 }));
+      mola.position.set(x, hy * 0.62 - i * 0.02, hz * 0.85); mola.castShadow = true; h.add(mola);
+    });
+    // laterais curtinhas
+    [-1, 1].forEach(l => mesh(esfera, '#1a1614', h, [hx * 0.88 * l, 0.12, -0.05], [0.12, 0.25, 0.42]));
+    // óculos redondos prateados
+    const prata = { metalness: 0.85, roughness: 0.25 };
+    [-1, 1].forEach(l => {
+      mesh(toro(0.17, 0.016), '#c9ccd2', h, [0.25 * l, -0.02, hz * 0.99], [1, 1, 1], [0, 0, 0], prata);
+      mesh(new THREE.CircleGeometry(0.165, 32), new THREE.MeshPhysicalMaterial({ color: '#ffffff', transparent: true, opacity: 0.12, roughness: 0.05 }), h, [0.25 * l, -0.02, hz * 0.99]);
+      mesh(capsula(0.008, 0.5), '#c9ccd2', h, [0.47 * l, 0.0, hz * 0.6], [1, 1, 1], [Math.PI / 2, 0, 0], prata);
+    });
+    mesh(capsula(0.01, 0.1), '#c9ccd2', h, [0, 0.01, hz * 1.0], [1, 1, 1], [0, 0, Math.PI / 2], prata);
+  },
+});
+
+const ANTONIO = boneco({
+  pele: '#f4c6a5', camisa: '#18181a', manga: '#1f2a4a', baixo: '#3a3a3c', perna: '#3a3a3c', cano: null,
+  extraTronco(c) {
+    // jaqueta aberta: duas metades azul-marinho
+    [-1, 1].forEach(l => mesh(capsula(0.25, 0.32), '#1f2a4a', c, [0.2 * l, 1.05, 0.02], [1, 1.02, 1.1]));
+    // cachecol pied-de-poule (cinza)
+    mesh(toro(0.24, 0.07), '#8a8a8c', c, [0, 1.4, 0], [1, 1, 1], [Math.PI / 2.2, 0, 0]);
+    [-1, 1].forEach(l => mesh(caixaRedonda(0.09, 0.36, 0.04, 0.018), '#9a9a9d', c, [0.09 * l, 1.18, 0.33], [1, 1, 1], [0.1, 0, 0.06 * l]));
+  },
+  extraCabeca(h, { hx, hy, hz }) {
+    // barba rala curta: casca semitransparente + cavanhaque
+    mesh(casca(1.006, Math.PI * 0.1, Math.PI * 0.8, Math.PI * 0.64, Math.PI * 0.32), '#4a3a32', h, [0, 0, 0], [hx, hy, hz], [0, 0, 0], { transparent: true, opacity: 0.6 });
+    mesh(esfera, '#3b2a22', h, [0, -0.47, hz * 0.8], [0.08, 0.07, 0.05]);
+    mesh(capsula(0.022, 0.13), '#3b2a22', h, [0, -0.235, hz * 1.02], [1, 1, 1], [0, 0, Math.PI / 2]);
+    // cabelo com volume, jogado de lado
+    const cab = new THREE.Group(); h.add(cab);
+    mesh(esfera, '#3b2a22', cab, [0, hy * 0.62, -0.05], [hx * 0.95, 0.36, hz * 0.92], [0, 0, 0], { roughness: 0.55 });
+    for (let i = 0; i < 7; i++) {
+      mesh(esfera, '#45322a', cab, [-0.35 + i * 0.12, hy * 0.8 + Math.sin(i) * 0.05, 0.25 - Math.abs(i - 3) * 0.04], [0.16, 0.12, 0.3], [0.4, 0, 0.5 - i * 0.12], { roughness: 0.55 });
+    }
+    mesh(esfera, '#45322a', cab, [0.18, hy * 0.62, hz * 0.62], [0.32, 0.1, 0.12], [0, 0, -0.35], { roughness: 0.55 }); // mecha na testa
+    [-1, 1].forEach(l => mesh(esfera, '#2e211b', h, [hx * 0.9 * l, 0.15, -0.05], [0.1, 0.22, 0.4]));
+  },
+});
+
+const GUADALUPE = boneco({
+  pele: '#f5c4a2', camisa: '#c94032', baixo: '#c94032', manga: '#c94032', sobrancelha: '#6b4a38',
+  extraTronco(c) {
+    // cinto + shortinho pregueado (saia curta)
+    mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.06, 32), '#a8352a', c, [0, 0.88, 0], [1, 1, 0.84]);
+    mesh(new THREE.CylinderGeometry(0.34, 0.44, 0.26, 24, 1, true), '#c94032', c, [0, 0.72, 0], [1, 1, 0.86]);
+  },
+  extraBraco(b) { // manga boca de sino
+    b.forEach(({ g, lado }) => mesh(new THREE.CylinderGeometry(0.1, 0.19, 0.18, 20, 1, true), mat('#c94032', { side: THREE.DoubleSide }), g, [0.03 * lado, -0.36, 0]));
+    mesh(toro(0.085, 0.02), '#2a1d18', b[0].g, [-0.03, -0.45, 0], [1, 1, 1], [Math.PI / 2, 0, 0]);
+  },
+  extraCabeca(h, { hx, hy, hz }) {
+    // cabelo longo com degradê: castanho em cima, mel nas pontas (cores por vértice)
+    const cabelo = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55 });
+    const pintar = (geo, yTopo, yBase) => {
+      const pos = geo.attributes.position, cores = [];
+      const a = new THREE.Color('#4e3326'), b = new THREE.Color('#d4974f');
+      for (let i = 0; i < pos.count; i++) {
+        const t = THREE.MathUtils.clamp((yTopo - pos.getY(i)) / (yTopo - yBase), 0, 1);
+        const c = a.clone().lerp(b, THREE.MathUtils.smoothstep(t, 0.15, 0.85)); cores.push(c.r, c.g, c.b);
+      }
+      geo.setAttribute('color', new THREE.Float32BufferAttribute(cores, 3)); return geo;
+    };
+    const topo = pintar(new THREE.SphereGeometry(1.06, 40, 28, 0, Math.PI * 2, 0, Math.PI * 0.3), 1.06, -1.4);
+    mesh(topo, cabelo, h, [0, 0.04, -0.02], [hx, hy, hz]);
+    const costas = pintar(new THREE.SphereGeometry(1.06, 40, 28, Math.PI * 0.95, Math.PI * 1.1, Math.PI * 0.25, Math.PI * 0.5), 1.06, -1.4);
+    mesh(costas, cabelo, h, [0, 0.04, -0.02], [hx, hy, hz]);
+    [-1, 1].forEach(l => mesh(pintar(new THREE.SphereGeometry(1.06, 24, 20, l > 0 ? -0.1 : Math.PI - 0.5, 0.6, Math.PI * 0.2, Math.PI * 0.45), 1.06, -1.4), cabelo, h, [0, 0.04, -0.02], [hx, hy, hz]));
+    // mechas longas ondulando nas costas e nos lados
+    for (let i = 0; i < 13; i++) {
+      const ang = -Math.PI * 0.62 + (i / 12) * Math.PI * 1.24;
+      const pts = Array.from({ length: 9 }, (_, k) => new THREE.Vector3(
+        Math.sin(ang) * (hx * 0.95 + k * 0.012) + Math.sin(k * 1.3 + i) * 0.04,
+        0.2 - k * 0.2,
+        -Math.cos(ang) * (hz * 0.85) + Math.cos(k * 1.3 + i) * 0.04));
+      const geo = pintar(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 40, 0.12, 10), 0.2, -1.4);
+      const m = new THREE.Mesh(geo, cabelo); m.castShadow = true; h.add(m);
+    }
+    // franja longa de lado
+    const franja = pintar(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.1, 0.66, hz * 0.82), new THREE.Vector3(0.3, 0.5, hz * 0.88),
+      new THREE.Vector3(0.6, 0.18, hz * 0.7), new THREE.Vector3(0.72, -0.3, hz * 0.4)]), 40, 0.09, 10), 0.66, -1.4);
+    const fm = new THREE.Mesh(franja, cabelo); fm.scale.set(1, 1, 1); h.add(fm);
+    // brincos de pérola
+    [-1, 1].forEach(l => mesh(esfera, '#f4efe6', h, [hx * 0.98 * l, -0.22, 0.04], [0.04, 0.04, 0.04], [0, 0, 0], { roughness: 0.15, metalness: 0.1 }));
+    // pintinha
+    mesh(esfera, '#3a2620', h, [0.36, -0.1, hz * 0.9], [0.022, 0.022, 0.01]);
+    // cílios
+    [-1, 1].forEach(l => mesh(caixaRedonda(0.2, 0.03, 0.03, 0.01), '#2a1a12', h, [0.27 * l, 0.12, hz * 0.95], [1, 1, 1], [0, 0, -0.15 * l]));
+  },
+});
+
+const turma = [WEZ, CACAU, ANTONIO, GUADALUPE];
+const nomes = ['Wez', 'Cacau', 'Antônio', 'Guadalupe'];
+turma.forEach((b, i) => { b.position.set(-3.3 + i * 2.2, 0, 0); b.userData.nome = nomes[i]; scene.add(b); });
+
+// ---------- animação ----------
+let acao = 'parado';
+document.querySelectorAll('[data-acao]').forEach(btn => btn.addEventListener('click', () => {
+  acao = btn.dataset.acao;
+  document.querySelectorAll('[data-acao]').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+}));
+
+// toque num boneco = pulinho
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
+renderer.domElement.addEventListener('pointerup', e => {
+  ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  ray.setFromCamera(ptr, camera);
+  const hit = ray.intersectObjects(turma, true)[0];
+  if (hit) hit.object.userData.dono.userData.pulo = 1;
+});
+
+const calmo = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const relogio = new THREE.Clock();
+function quadro() {
+  const dt = Math.min(relogio.getDelta(), 0.05);
+  const t = relogio.elapsedTime;
+  const k = 1 - Math.exp(-12 * dt); // suavização independente do fps
+  turma.forEach((b, i) => {
+    const u = b.userData, f = t * (calmo ? 0.4 : 1) + u.fase;
+    const { corpo, cabeca, bracos, pernas, olhos } = u;
+    // reset suave
+    let yCorpo = 0, rotCorpo = 0, cabRotZ = 0, cabRotY = 0;
+    let bE = -0.18, bD = 0.18, bEx = 0, bDx = 0, pE = 0, pD = 0;
+
+    if (acao === 'parado') {
+      yCorpo = Math.sin(f * 2) * 0.02; cabRotZ = Math.sin(f * 0.9) * 0.05;
+    } else if (acao === 'acenar') {
+      yCorpo = Math.sin(f * 2) * 0.02; cabRotZ = 0.08;
+      bD = 2.7 + Math.sin(f * 9) * 0.35; // braço direito para cima, balançando
+    } else if (acao === 'andar') {
+      const s = Math.sin(f * 6);
+      pE = s * 0.55; pD = -s * 0.55; bEx = -s * 0.6; bDx = s * 0.6;
+      yCorpo = Math.abs(Math.cos(f * 6)) * 0.07; rotCorpo = s * 0.05;
+    } else if (acao === 'dancar') {
+      const s = Math.sin(f * 5);
+      yCorpo = Math.abs(s) * 0.15; rotCorpo = s * 0.12; cabRotZ = -s * 0.15; cabRotY = Math.sin(f * 2.5) * 0.4;
+      bE = -2.3 + s * 0.4; bD = 2.3 + s * 0.4;
+    }
+    // pulinho ao tocar
+    if (u.pulo > 0) { u.pulo = Math.max(0, u.pulo - dt * 1.6); yCorpo += Math.sin(u.pulo * Math.PI) * 0.8; }
+
+    corpo.position.y = yCorpo; corpo.rotation.z = rotCorpo;
+    cabeca.rotation.z = cabRotZ; cabeca.rotation.y = cabRotY;
+    bracos[0].g.rotation.z = THREE.MathUtils.lerp(bracos[0].g.rotation.z, bE, k);
+    bracos[1].g.rotation.z = THREE.MathUtils.lerp(bracos[1].g.rotation.z, bD, k);
+    bracos[0].g.rotation.x = THREE.MathUtils.lerp(bracos[0].g.rotation.x, bEx, k);
+    bracos[1].g.rotation.x = THREE.MathUtils.lerp(bracos[1].g.rotation.x, bDx, k);
+    pernas[0].rotation.x = THREE.MathUtils.lerp(pernas[0].rotation.x, pE, k);
+    pernas[1].rotation.x = THREE.MathUtils.lerp(pernas[1].rotation.x, pD, k);
+    // piscar
+    const piscando = (f % 4.2) < 0.12;
+    olhos.forEach(o => { o.scale.y = piscando ? 0.12 : 1; });
+  });
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(quadro);
+}
+quadro();
+window.__pronto = true;
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  camera.position.z = innerWidth < 700 ? 17 : 11.5;
+});
+if (innerWidth < 700) camera.position.z = 17;
+</script>
+</body>
+</html>

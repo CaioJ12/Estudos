@@ -19,6 +19,11 @@ Bonecos no estilo designer toy (vinil 3D fofo), da mesma coleção.
 - `guadalupe.html`: ficha da Guadalupe no mesmo formato.
 - `renders/guadalupe-*`: hero (mão na cintura), andando, vistas, humores e recortes com fundo transparente.
 
+## Coleção em 3D
+- `3d.html`: os quatro modelados em 3D com three.js (formas de brinquedo), com animações de parado, acenar, andar e dançar, e pulinho ao tocar. Precisa de servidor local (ex.: `python3 -m http.server`).
+- `compartilhar/3d.html`: a mesma cena em arquivo único, abre direto.
+- `vendor/`: three.js 0.160 e OrbitControls.
+
 ## Arquivos para compartilhar
 - `compartilhar/cacau.html`, `compartilhar/antonio.html` e `compartilhar/guadalupe.html`: as mesmas páginas em arquivo único, com as imagens embutidas. Abrem sozinhas, sem a pasta `renders/`.
 
