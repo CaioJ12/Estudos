@@ -11,5 +11,9 @@ Bonecos no estilo designer toy (vinil 3D fofo), da mesma coleção.
 - `cacau.html`: ficha do Cacau no mesmo formato.
 - `renders/cacau-*`: hero (joinha), andando, vistas, humores e recortes com fundo transparente.
 
+## Antônio
+- `antonio.html`: ficha do Antônio no mesmo formato.
+- `renders/antonio-*`: hero (hang loose), andando, vistas, humores e recortes com fundo transparente.
+
 As imagens foram geradas com o gerador de imagens do Figma. Os recortes vêm de versões em fundo verde (chroma key).
-Para ver, abra `index.html` ou `cacau.html` no navegador e role a página.
+Para ver, abra `index.html`, `cacau.html` ou `antonio.html` no navegador e role a página.
