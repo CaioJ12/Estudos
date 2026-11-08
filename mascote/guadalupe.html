@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guadalupe, a mascote</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Grandstander:wght@500;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --marinho: #1d4b4c;      /* verde-mar */
+    --marinho-fundo: #163a3b;
+    --bone: #f8dcc8;         /* pêssego claro */
+    --areia: #f7f0ea;
+    --cafe: #a8382c;         /* terracota (títulos) */
+    --macaquinho: #c94032;
+    --raiz: #503428;
+    --mechas: #cf8c4d;
+    --perola: #f3eee6;
+    --coracao: #f2c230;
+    --pele: #f5be9a;
+    --blush: #f2a08f;
+    --tenis: #f1efed;
+    --tinta: #241b18;
+    --display: "Grandstander", "Baloo 2", system-ui, sans-serif;
+    --texto: "Atkinson Hyperlegible", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: var(--texto);
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    color: var(--tinta);
+    background: var(--areia);
+  }
+  img { max-width: 100%; height: auto; display: block; }
+  h1, h2, h3 { font-family: var(--display); line-height: 1.05; margin: 0; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--blush); outline-offset: 3px; border-radius: 6px; }
+
+  .faixa { padding: clamp(56px, 9vw, 112px) 16px; }
+  .miolo { max-width: 1120px; margin: 0 auto; }
+
+  /* ---------------- Hero ---------------- */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--marinho);
+    /* a estampa de coqueirinhos da bermuda vira o papel de parede */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%23f8dcc8' opacity='.13'%3E%3Cpath d='M20 30c-4-6-14-3-11 5 2 5 11 10 11 10s9-5 11-10c3-8-7-11-11-5z'/%3E%3Cpath d='M60 70c-3-5-11-2-9 4 2 4 9 8 9 8s7-4 9-8c2-6-6-9-9-4z' transform='translate(0 -10)'/%3E%3C/g%3E%3C/svg%3E");
+    color: var(--bone);
+    min-height: min(100vh, 980px);
+    display: grid;
+    place-items: end center;
+    padding: 24px 16px 64px;
+    text-align: center;
+  }
+  .hero-nome {
+    position: absolute;
+    top: clamp(48px, 9vh, 96px);
+    left: 0; right: 0;
+    font-weight: 900;
+    font-size: min(14vw, 11.5rem, 24vh);
+    letter-spacing: -.02em;
+    line-height: .8;
+    color: var(--bone);
+    user-select: none;
+  }
+  .hero-boneco {
+    position: relative;
+    height: min(72vh, 720px);
+    width: auto;
+    max-width: 80vw;
+    object-fit: contain;
+    filter: drop-shadow(0 26px 30px rgba(10, 16, 40, .45));
+    animation: chega 900ms cubic-bezier(.2, 1.4, .4, 1) both;
+  }
+  @keyframes chega {
+    from { transform: translateY(60px) scale(.92); opacity: 0; }
+    to   { transform: none; opacity: 1; }
+  }
+  .hero-legenda {
+    position: absolute;
+    left: 16px; right: 16px; bottom: 20px;
+    display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    font-size: .95rem;
+    color: rgba(239, 227, 207, .8);
+  }
+
+  /* ---------------- DNA ---------------- */
+  .dna { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(32px, 6vw, 80px); align-items: start; }
+  .dna h2, .bloco-titulo h2 { font-size: clamp(2.4rem, 5.5vw, 4rem); font-weight: 800; color: var(--cafe); }
+  .dna-intro { max-width: 34em; margin: 16px 0 32px; }
+  .tracos { list-style: none; padding: 0; margin: 0; display: grid; gap: 18px; }
+  .tracos li { display: grid; grid-template-columns: 22px 1fr; gap: 14px; align-items: baseline; }
+  .tracos li::before {
+    content: ""; width: 14px; height: 14px; border-radius: 50%;
+    background: var(--cor, var(--cafe));
+    box-shadow: inset -3px -3px 0 rgba(0,0,0,.14);
+    transform: translateY(2px);
+  }
+  .tracos strong { font-family: var(--display); font-weight: 800; font-size: 1.2rem; display: block; line-height: 1.2; }
+  .tracos span { color: #5c4a40; }
+
+  .paleta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .chip {
+    border-radius: 28px 28px 28px 8px;
+    padding: 64px 18px 16px;
+    background: var(--c);
+    color: var(--t, var(--tinta));
+    box-shadow: inset -8px -10px 0 rgba(0,0,0,.08), inset 6px 6px 0 rgba(255,255,255,.18);
+  }
+  .chip b { font-family: var(--display); font-weight: 800; font-size: 1.25rem; display: block; }
+  .chip code { font-family: var(--texto); font-size: .95rem; opacity: .85; }
+
+  /* ---------------- Vistas e expressões ---------------- */
+  .bloco-titulo { display: flex; justify-content: space-between; align-items: end; gap: 24px; flex-wrap: wrap; margin-bottom: 28px; }
+  .bloco-titulo p { max-width: 30em; margin: 0; color: #5c4a40; }
+  .moldura {
+    border-radius: 36px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 2px 0 rgba(42,30,25,.06), 0 30px 60px -30px rgba(42,30,25,.35);
+  }
+  .vistas-faixa { background: #e3e4e8; }
+  .vistas-faixa .bloco-titulo h2 { color: var(--marinho); }
+  .legendas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; text-align: center; }
+  .legendas b { font-family: var(--display); font-weight: 800; font-size: 1.15rem; display: block; color: var(--cafe); }
+  .legendas span { font-size: .95rem; color: #5c4a40; }
+
+  /* ---------------- Passeio no scroll ---------------- */
+  .trilha { height: 420vh; position: relative; background: var(--marinho-fundo); }
+  .palco { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+  .palco h2 {
+    position: absolute; top: clamp(32px, 8vh, 80px); left: 16px; right: 16px;
+    text-align: center; color: var(--bone);
+    font-size: clamp(2rem, 6vw, 4.2rem); font-weight: 800;
+  }
+  .palco p { position: absolute; top: calc(clamp(32px, 8vh, 80px) + clamp(2.6rem, 7vw, 5rem)); left: 16px; right: 16px; text-align: center; color: rgba(239,227,207,.75); margin: 0; }
+  .chao {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 24vh;
+    background: var(--bone);
+    border-top-left-radius: 50% 40px; border-top-right-radius: 50% 40px;
+  }
+  .andador {
+    position: absolute;
+    bottom: calc(24vh - 18px);
+    left: 0;
+    width: min(230px, 46vw);
+    will-change: transform;
+  }
+  .andador .sombra {
+    position: absolute; left: 14%; right: 14%; bottom: -6px; height: 18px;
+    background: radial-gradient(closest-side, rgba(42,30,25,.35), transparent);
+  }
+  .andador img { position: relative; transform-origin: 50% 100%; }
+  .andador.virado img { scale: -1 1; }
+
+  .fim { background: var(--bone); text-align: center; }
+  .fim h2 { font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 800; color: var(--cafe); }
+  .fim p { margin: 12px auto 0; max-width: 36em; }
+  .fim a { font-weight: 700; }
+
+  @media (max-width: 480px) {
+    .hero { padding-bottom: 104px; }
+  }
+  @media (max-width: 760px) {
+    .dna { grid-template-columns: 1fr; }
+    .legendas { gap: 4px; }
+    .legendas b { font-size: .95rem; }
+    .legendas span { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .hero-boneco { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <h1 class="hero-nome" aria-label="Guadalupe">Guadalupe</h1>
+  <img class="hero-boneco" src="renders/guadalupe-hero-recorte.png" width="487" height="988"
+       alt="Guadalupe como boneca de vinil: cabelo longo ondulado com mechas mel, franja de lado, brincos de pérola, macaquinho terracota com manga boca de sino, mão na cintura">
+  <div class="hero-legenda">
+    <span>Da mesma coleção do Wez, do Cacau e do Antônio</span>
+    <span>Role para conhecer ↓</span>
+  </div>
+</header>
+
+<main>
+  <section class="faixa" aria-labelledby="dna-titulo">
+    <div class="miolo dna">
+      <div>
+        <h2 id="dna-titulo">O que faz dela a Guadalupe</h2>
+        <p class="dna-intro">A primeira menina da coleção: o cabelo longo com mechas mel e o macaquinho terracota entregam quem ela é de longe.</p>
+        <ul class="tracos">
+          <li style="--cor: var(--mechas)"><div><strong>Cabelo longo com mechas</strong><span>Ondulado, raiz castanha clareando até o mel nas pontas.</span></div></li>
+          <li style="--cor: var(--raiz)"><div><strong>Franja de lado</strong><span>Comprida, caindo sobre um lado do rosto.</span></div></li>
+          <li style="--cor: var(--perola)"><div><strong>Brincos de pérola</strong><span>Pequenininhos, de pressão.</span></div></li>
+          <li style="--cor: var(--blush)"><div><strong>Sorriso fácil</strong><span>Bochecha corada e uma pintinha no rosto.</span></div></li>
+          <li style="--cor: var(--macaquinho)"><div><strong>Macaquinho terracota</strong><span>Transpassado, com cinto e manga boca de sino.</span></div></li>
+          <li style="--cor: var(--tinta)"><div><strong>Pulseira de miçanga</strong><span>Fininha e escura, no pulso.</span></div></li>
+        </ul>
+      </div>
+      <div class="paleta" role="list" aria-label="Paleta de cores da personagem">
+        <div class="chip" role="listitem" style="--c: var(--macaquinho); --t: var(--areia)"><b>Macaquinho</b><code>#C94032</code></div>
+        <div class="chip" role="listitem" style="--c: var(--raiz); --t: var(--areia)"><b>Raiz</b><code>#503428</code></div>
+        <div class="chip" role="listitem" style="--c: var(--mechas)"><b>Mechas</b><code>#CF8C4D</code></div>
+        <div class="chip" role="listitem" style="--c: var(--pele)"><b>Pele</b><code>#F5BE9A</code></div>
+        <div class="chip" role="listitem" style="--c: var(--perola)"><b>Pérola</b><code>#F3EEE6</code></div>
+        <div class="chip" role="listitem" style="--c: var(--coracao)"><b>Coração</b><code>#F2C230</code></div>
+        <div class="chip" role="listitem" style="--c: var(--marinho); --t: var(--areia)"><b>Verde-mar</b><code>#1D4B4C</code></div>
+        <div class="chip" role="listitem" style="--c: var(--blush)"><b>Bochecha</b><code>#F2A08F</code></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="faixa vistas-faixa" aria-labelledby="vistas-titulo">
+    <div class="miolo">
+      <div class="bloco-titulo">
+        <h2 id="vistas-titulo">De todos os lados</h2>
+        <p>Frente, perfil, costas e três-quartos. É a referência para quem for animar ou produzir a boneca.</p>
+      </div>
+      <div class="moldura">
+        <img src="renders/guadalupe-toy-vistas.png" width="1536" height="864" loading="lazy"
+             alt="Folha de vistas da Guadalupe: frente, perfil direito, costas e três-quartos">
+      </div>
+    </div>
+  </section>
+
+  <section class="faixa" aria-labelledby="humor-titulo">
+    <div class="miolo">
+      <div class="bloco-titulo">
+        <h2 id="humor-titulo">Quatro humores</h2>
+        <p>Para figurinhas, reações e thumbnails do canal.</p>
+      </div>
+      <div class="moldura">
+        <img src="renders/guadalupe-toy-poses.png" width="1536" height="864" loading="lazy"
+             alt="Guadalupe em quatro poses: gargalhando com a mão na cintura, revirando os olhos de braços cruzados, segurando um coração amarelo e pendurada numa barra">
+      </div>
+      <div class="legendas">
+        <div><b>Gargalhada</b><span>olhinhos fechados</span></div>
+        <div><b>Expectativa</b><span>revirando os olhos</span></div>
+        <div><b>Carinho</b><span>coração amarelo</span></div>
+        <div><b>Realidade</b><span>pendurada na barra</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="trilha" id="trilha" aria-label="Guadalupe passeando conforme a página rola">
+    <div class="palco">
+      <h2>Vem comigo</h2>
+      <p>Role a página e ela anda junto. Volte, e ela volta.</p>
+      <div class="chao"></div>
+      <div class="andador" id="andador">
+        <div class="sombra"></div>
+        <img src="renders/guadalupe-andando-recorte.png" width="616" height="977" alt="Guadalupe andando">
+      </div>
+    </div>
+  </section>
+
+  <section class="faixa fim">
+    <div class="miolo">
+      <h2>Chegou!</h2>
+      <p>Conheça também os outros bonecos da coleção: <a href="index.html">ver o Wez</a>, <a href="cacau.html">ver o Cacau</a> e <a href="antonio.html">ver o Antônio</a>.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+  const andador = document.getElementById('andador');
+  const boneco = andador.querySelector('img');
+  const trilha = document.getElementById('trilha');
+  const calmo = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let ultimoY = scrollY;
+
+  function atualizar() {
+    const total = trilha.offsetHeight - innerHeight;
+    const p = Math.min(1, Math.max(0, (scrollY - trilha.offsetTop) / total));
+    const maxX = innerWidth - andador.offsetWidth;
+    andador.style.transform = `translateX(${p * maxX}px)`;
+
+    // gingado de brinquedo: balança de um lado pro outro e dá pulinhos
+    if (!calmo) {
+      const passo = Math.sin(scrollY / 38);
+      boneco.style.transform = `translateY(${-Math.abs(passo) * 12}px) rotate(${passo * 5}deg)`;
+    }
+
+    if (scrollY < ultimoY) andador.classList.add('virado');
+    else if (scrollY > ultimoY) andador.classList.remove('virado');
+    ultimoY = scrollY;
+  }
+  addEventListener('scroll', () => requestAnimationFrame(atualizar), { passive: true });
+  addEventListener('resize', atualizar);
+  atualizar();
+</script>
+</body>
+</html>
